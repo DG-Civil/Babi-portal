@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; connect-src https://*.supabase.co; img-src 'self' data:; style-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Babi Sales Portal</title>
+<link rel="stylesheet" href="portal.css">
+</head>
+<body>
+<header class="band">
+  <div class="brand"><span class="logo">B</span><div><b>Babi</b><small>Sales portal</small></div></div>
+  <div id="who" class="who" hidden><span id="whoName"></span> <span id="whoRole" class="pill"></span> <button id="signOut" class="ghost">Sign out</button></div>
+</header>
+
+<main>
+  <p id="msg" class="msg" role="status" hidden></p>
+
+  <!-- not configured -->
+  <section id="vConfig" class="card narrow" hidden>
+    <h2>Not set up yet</h2>
+    <p>Open <code>config.js</code> and fill in the Supabase address and the publishable key (see README_PORTAL.txt).</p>
+  </section>
+
+  <!-- sign in / create account -->
+  <section id="vAuth" class="card narrow" hidden>
+    <h2 id="authTitle">Sign in</h2>
+    <p class="muted">See your sales: when, where and how much. Your account must be approved by the Babi administrator before anything is shown.</p>
+    <form id="authForm" autocomplete="on">
+      <label>Email <input id="email" type="email" required autocomplete="email"></label>
+      <label>Password <input id="password" type="password" required minlength="8" autocomplete="current-password"></label>
+      <button class="primary" id="authGo" type="submit">Sign in</button>
+    </form>
+    <p class="links"><a href="#" id="toggleMode">Create an account</a> &nbsp;·&nbsp; <a href="#" id="forgot">Forgot password</a></p>
+  </section>
+
+  <!-- new password after the reset email -->
+  <section id="vRecovery" class="card narrow" hidden>
+    <h2>Choose a new password</h2>
+    <form id="recForm">
+      <label>New password <input id="newPassword" type="password" required minlength="8" autocomplete="new-password"></label>
+      <button class="primary" type="submit">Save password</button>
+    </form>
+  </section>
+
+  <!-- the access request -->
+  <section id="vRequest" class="card narrow" hidden>
+    <h2>Ask for access</h2>
+    <p class="muted">Tell the administrator who you are. After he approves you, your sales appear here.</p>
+    <form id="reqForm">
+      <label>I am a
+        <select id="reqRole"><option value="distributor">Distributor (I sell Babi movies/music in my shop)</option><option value="creator">Content creator (artist / producer)</option></select>
+      </label>
+      <label>Name (as the administrator knows you) <input id="reqName" required minlength="2" maxlength="120"></label>
+      <label>Note (shop name and distributor ID, or the titles / artist names that are yours) <textarea id="reqNote" maxlength="500" rows="3"></textarea></label>
+      <button class="primary" type="submit">Send request</button>
+    </form>
+  </section>
+
+  <section id="vPending" class="card narrow" hidden>
+    <h2>Waiting for approval</h2>
+    <p>Your request was sent. The administrator must approve it before you can see any sales. You can close this page and come back later.</p>
+    <button id="recheck" class="primary">Check again</button>
+  </section>
+
+  <section id="vBlocked" class="card narrow" hidden>
+    <h2 id="blockedTitle">Access not available</h2>
+    <p id="blockedText"></p>
+  </section>
+
+  <!-- the dashboard -->
+  <section id="vDash" hidden>
+    <div class="toolbar">
+      <h2 id="dashTitle">Your sales</h2>
+      <div><button id="refresh" class="ghost">Refresh</button> <button id="csv" class="ghost">Download all sales (CSV)</button></div>
+    </div>
+    <p id="dashNote" class="muted"></p>
+    <div id="cardsBox"></div>
+
+    <div class="card">
+      <div class="toolbar"><h3>Summary</h3>
+        <div class="tabs" role="tablist">
+          <button class="tab on" data-p="month">Monthly</button>
+          <button class="tab" data-p="quarter">Every 3 months</button>
+          <button class="tab" data-p="year">Yearly</button>
+        </div>
+      </div>
+      <div class="scroll"><table id="sumTable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar"><h3>Where it was sold</h3>
+        <select id="countryRange">
+          <option value="month">This month</option>
+          <option value="last3">Last 3 months</option>
+          <option value="year">This year</option>
+          <option value="all" selected>All time</option>
+        </select>
+      </div>
+      <div class="scroll"><table id="countryTable"></table></div>
+    </div>
+
+    <div class="card">
+      <h3>Latest sales</h3>
+      <div class="scroll"><table id="rowsTable"></table></div>
+      <p><button id="more" class="ghost" hidden>Show more</button></p>
+    </div>
+    <p class="muted small">Times are shown in your own time zone; monthly, 3-monthly and yearly totals count by UTC calendar. Amounts of different currencies are never added together. Cancelled sales are not counted.</p>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="portal_logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
