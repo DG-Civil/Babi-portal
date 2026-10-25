@@ -92,7 +92,23 @@
     return [r.country, r.seller].filter(Boolean).join(" - ");
   }
 
-  var api = { monthKey: monthKey, last3Keys: last3Keys, cards: cards, money: money, quarterName: quarterName, monthName: monthName, toCsv: toCsv, csvCell: csvCell, place: place };
+  /** rows = answers of babi_portal_dues: {month, currency, copies, gross, kept, due, paid, balance}.
+   * Per currency: what is still to be handed over in total, and the figures of the current month. */
+  function duesCards(rows, now) {
+    var out = {}, key = monthKey(now);
+    (rows || []).forEach(function (r) {
+      var c = r.currency || "", a = out[c] || (out[c] = { owing: 0, due: 0, paid: 0, thisMonth: { due: 0, paid: 0, balance: 0, kept: 0, gross: 0, copies: 0 } });
+      a.owing += Number(r.balance || 0); a.due += Number(r.due || 0); a.paid += Number(r.paid || 0);
+      if (r.month === key) {
+        var m = a.thisMonth;
+        m.due += Number(r.due || 0); m.paid += Number(r.paid || 0); m.balance += Number(r.balance || 0);
+        m.kept += Number(r.kept || 0); m.gross += Number(r.gross || 0); m.copies += Number(r.copies || 0);
+      }
+    });
+    return out;
+  }
+
+  var api = { duesCards: duesCards, monthKey: monthKey, last3Keys: last3Keys, cards: cards, money: money, quarterName: quarterName, monthName: monthName, toCsv: toCsv, csvCell: csvCell, place: place };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.BabiLogic = api;
 })(typeof window !== "undefined" ? window : this);

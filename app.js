@@ -65,7 +65,7 @@
                                  sb.rpc("babi_portal_summary", { p_period: "quarter" })]);
     for (var i = 0; i < res.length; i++) if (res[i].error) { say(nice(res[i].error), "bad"); return; }
     window._sum = { month: res[0].data || [], year: res[1].data || [], quarter: res[2].data || [] };
-    drawCards(); drawSummary(); await drawCountries();
+    drawCards(); drawSummary(); await drawCountries(); await drawDues();
     loaded = 0; lastRows = []; $("rowsTable").textContent = "";
     await moreRows();
     say("");
@@ -88,6 +88,29 @@
       });
       box.appendChild(grid);
     });
+  }
+
+  async function drawDues() {
+    var card = $("duesCard");
+    card.hidden = me.role !== "distributor";
+    if (card.hidden) return;
+    var res = await sb.rpc("babi_portal_dues");
+    if (res.error) { say(nice(res.error), "bad"); return; }
+    var rows = res.data || [], box = $("duesBox"); box.textContent = "";
+    var c = L.duesCards(rows, new Date()), curs = Object.keys(c).sort();
+    curs.forEach(function (cur) {
+      box.appendChild(el("div", cur || "(no currency)", "cur"));
+      var grid = el("div", null, "cards");
+      [["Still to pay (all months)", c[cur].owing, "Owed minus received"], ["Owed this month", c[cur].thisMonth.due, c[cur].thisMonth.copies + " copies"],
+       ["Paid this month", c[cur].thisMonth.paid, "Recorded by the administrator"], ["You keep this month", c[cur].thisMonth.kept, "Your own share"]].forEach(function (p) {
+        var s = el("div", null, "stat");
+        s.appendChild(el("div", p[0], "k")); s.appendChild(el("div", L.money(p[1], cur), "v")); s.appendChild(el("div", p[2], "s"));
+        grid.appendChild(s);
+      });
+      box.appendChild(grid);
+    });
+    table($("duesTable"), ["Month", "Currency", "Copies", "Taken", "You keep", "Hand over", "Paid", "Still to pay"],
+          rows.map(function (r) { return [L.monthName(r.month), r.currency || "-", String(r.copies), L.money(r.gross), L.money(r.kept), L.money(r.due), L.money(r.paid), L.money(r.balance)]; }), 2);
   }
 
   function table(t, head, rows, numFrom) {
